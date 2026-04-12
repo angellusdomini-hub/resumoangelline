@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arqueólogo Master: Expedição de Elite</title>
+    <style>
+        :root {
+            --primary: #5d4037;
+            --secondary: #3e2723;
+            --accent-orange: #ff9800;
+            --accent-green: #4caf50;
+            --accent-blue: #2196f3;
+            --bg: #efebe9;
+            --card: #ffffff;
+            --text: #3e2723;
+            --correct: #c8e6c9;
+            --wrong: #ffcdd2;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: var(--card);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 30px;
+            border: 2px solid var(--primary);
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary), #8d6e63);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .header h1 { margin: 0; font-size: 2.2rem; text-transform: uppercase; letter-spacing: 2px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        .header p { margin: 10px 0 0; opacity: 0.9; font-size: 1.1rem; }
+
+        .progress-container { padding: 25px 30px 0; }
+        .progress-bar { height: 15px; background: #e0e0e0; border-radius: 10px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent-orange), #f44336); width: 0%; transition: width 0.6s ease; }
+
+        .fase { display: none; padding: 30px; animation: fadeIn 0.6s ease; }
+        .fase.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        .resumo-card {
+            background: #fffde7;
+            border-left: 10px solid var(--accent-orange);
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 35px;
+            line-height: 1.8;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            text-align: justify;
+        }
+
+        .resumo-card h3 { margin-top: 0; color: var(--secondary); border-bottom: 2px solid var(--accent-orange); display: inline-block; padding-bottom: 5px; margin-bottom: 15px; }
+
+        .questao-box {
+            background: #fafafa;
+            border: 1px solid #e0e0e0;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .tag-tipo {
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            display: inline-block;
+            margin-bottom: 12px;
+        }
+        .tag-x { background: var(--accent-blue); }
+        .tag-comp { background: var(--accent-green); }
+        .tag-rel { background: var(--accent-orange); }
+
+        .pergunta { font-size: 1.15rem; font-weight: 600; margin-bottom: 15px; color: var(--secondary); }
+
+        input[type="text"], select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        input[type="text"]:focus { border-color: var(--accent-orange); outline: none; }
+
+        .opcoes-grid { display: grid; gap: 12px; }
+        .opcoes-grid label {
+            background: white;
+            padding: 14px;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: 0.2s;
+        }
+        .opcoes-grid label:hover { border-color: var(--accent-orange); background: #fffde7; }
+
+        .rel-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; align-items: center; margin-bottom: 12px; }
+        .rel-label { background: #f0f0f0; padding: 12px; border-radius: 8px; font-size: 0.95rem; font-weight: bold; border: 1px solid #ddd; }
+
+        .btn-nav {
+            background: var(--accent-green);
+            color: white;
+            border: none;
+            padding: 18px 50px;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: block;
+            margin: 40px auto;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: 0.3s;
+        }
+        .btn-nav:hover { background: var(--accent-orange); transform: translateY(-2px); }
+
+        #resultado { display: none; padding: 40px; text-align: center; }
+        .score-box { font-size: 3.5rem; font-weight: bold; color: var(--primary); margin: 25px 0; }
+        .feedback-list { text-align: left; margin-top: 40px; }
+        .feedback-item { padding: 20px; border-radius: 12px; margin-bottom: 15px; border-left: 8px solid #ccc; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .c-correta { border-color: #4caf50; background: #e8f5e9; }
+        .c-errada { border-color: #f44336; background: #ffebee; }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>🏺 Expedição Arqueológica: Nível Avançado</h1>
+        <p>A jornada definitiva pela origem da civilização humana</p>
+    </div>
+
+    <div class="progress-container">
+        <div class="progress-bar"><div class="progress-fill" id="p-fill"></div></div>
+    </div>
+
+    <!-- FASE 1: FONTES E PALEOLÍTICO -->
+    <div id="f1" class="fase active">
+        <div class="resumo-card">
+            <h3>🔍 Investigação e o Mundo Paleolítico</h3>
+            <p>O conhecimento sobre a Pré-História é construído por áreas como a <b>Arqueologia</b> (objetos) e a <b>Paleontologia</b> (fósseis). Estudamos <b>vestígios materiais</b> (ferramentas, potes) que indicam tecnologia, e <b>fósseis</b> (ossos, pegadas) que revelam a evolução biológica. No <b>Paleolítico</b>, os humanos eram <b>nômades</b>, vivendo da caça e coleta. A grande revolução foi o domínio do <b>fogo</b>, essencial para sobrevivência em climas diversos e processamento de alimentos.</p>
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-x">Marque X</span>
+            <p class="pergunta">1. Qual ciência analisa vestígios materiais (potes, armas, casas) para reconstruir costumes humanos?</p>
+            <div class="opcoes-grid">
+                <label><input type="radio" name="r1" value="a"> Paleontologia</label>
+                <label><input type="radio" name="r1" value="b"> Arqueologia</label>
+                <label><input type="radio" name="r1" value="c"> Geologia</label>
+                <label><input type="radio" name="r1" value="d"> Antropologia Física</label>
+            </div>
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-comp">Complete</span>
+            <p class="pergunta">2. Restos ou marcas orgânicas de seres vivos preservados, como ossos e pegadas, são chamados de ____________.</p>
+            <input type="text" id="c2">
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-rel">Relacione</span>
+            <p class="pergunta">3. Associe a evidência à sua categoria técnica correta:</p>
+            <div class="rel-row">
+                <div class="rel-label">Ponta de Flecha</div>
+                <select id="l3_1"><option value="">Escolha...</option><option value="v">Vestígio Material (Cultura)</option><option value="f">Fóssil (Biologia)</option></select>
+                <div class="rel-label">Pegada em Lama</div>
+                <select id="l3_2"><option value="">Escolha...</option><option value="v">Vestígio Material (Cultura)</option><option value="f">Fóssil (Biologia)</option></select>
+            </div>
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-comp">Complete</span>
+            <p class="pergunta">4. O período mais longo da história, onde a pedra era apenas lascada, chama-se ____________.</p>
+            <input type="text" id="c4">
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-x">Marque X</span>
+            <p class="pergunta">5. Além do cozimento, qual foi a função crucial do fogo para a expansão geográfica humana?</p>
+            <div class="opcoes-grid">
+                <label><input type="radio" name="r5" value="a"> Facilitar a navegação</label>
+                <label><input type="radio" name="r5" value="b"> Sobrevivência em regiões frias</label>
+                <label><input type="radio" name="r5" value="c"> Produção de metais</label>
+                <label><input type="radio" name="r5" value="d"> Criação da agricultura</label>
+            </div>
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-comp">Complete</span>
+            <p class="pergunta">6. Grupos que não possuem moradia fixa e migram seguindo o alimento são chamados de ____________.</p>
+            <input type="text" id="c6">
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-x">Marque X</span>
+            <p class="pergunta">7. A economia do Paleolítico é classificada como uma "economia de subsistência" baseada em:</p>
+            <div class="opcoes-grid">
+                <label><input type="radio" name="r7" value="a"> Comércio e Trocas</label>
+                <label><input type="radio" name="r7" value="b"> Caça, Pesca e Coleta</label>
+                <label><input type="radio" name="r7" value="c"> Pastoreio e Plantio</label>
+                <label><input type="radio" name="r7" value="d"> Metalurgia e Artesanato</label>
+            </div>
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-rel">Relacione</span>
+            <p class="pergunta">8. Associe o benefício do fogo à sua utilidade prática:</p>
+            <div class="rel-row">
+                <div class="rel-label">Segurança</div>
+                <select id="l8_1"><option value="">Escolha...</option><option value="p">Afugentar predadores</option><option value="a">Processar alimentos</option></select>
+                <div class="rel-label">Nutrição</div>
+                <select id="l8_2"><option value="">Escolha...</option><option value="p">Afugentar predadores</option><option value="a">Processar alimentos</option></select>
+            </div>
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-comp">Complete</span>
+            <p class="pergunta">9. Locais onde se concentram vestígios do passado são chamados de ____________ arqueológicos.</p>
+            <input type="text" id="c9">
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-x">Marque X</span>
+            <p class="pergunta">10. O domínio do fogo permitiu ao homem prolongar as horas de atividade diária. Isso ocorreu devido ao:</p>
+            <div class="opcoes-grid">
+                <label><input type="radio" name="r10" value="a"> Calor emitido</label>
+                <label><input type="radio" name="r10" value="b"> Iluminação noturna</label>
+                <label><input type="radio" name="r10" value="c"> Afastamento de insetos</label>
+                <label><input type="radio" name="r10" value="d"> Sinalização de tribos</label>
+            </div>
+        </div>
+
+        <button class="btn-nav" onclick="ir(2)">Fase 2: Revolução Neolítica →</button>
+    </div>
+
+    <!-- FASE 2: REVOLUÇÃO NEOLÍTICA -->
+    <div id="f2" class="fase">
+        <div class="resumo-card">
+            <h3>🌾 Neolítico: A Revolução da Sobrevivência</h3>
+            <p>O <b>Neolítico</b> marca a <b>Revolução Neolítica</b>. Com a agricultura e a pecuária, a humanidade tornou-se <b>sedentária</b>. Surgiram aldeias, crescimento populacional e divisão de tarefas. A <b>cerâmica</b> permitiu armazenar excedentes e a <b>roda</b> facilitou o transporte. A agricultura surgiu de forma independente em vários centros: Ásia (arroz), África (inhame) e América (milho, batata).</p>
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-comp">Complete</span>
+            <p class="pergunta">11. A domesticação de plantas e o controle da produção de alimentos chama-se ____________.</p>
+            <input type="text" id="c11">
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-x">Marque X</span>
+            <p class="pergunta">12. Qual o principal impacto do sedentarismo na organização social humana?</p>
+            <div class="opcoes-grid">
+                <label><input type="radio" name="r12" value="a"> Fim das guerras</label>
+                <label><input type="radio" name="r12" value="b"> Criação de aldeias fixas</label>
+                <label><input type="radio" name="r12" value="c"> Retorno ao nomadismo</label>
+                <label><input type="radio" name="r12" value="d"> Abandono das cavernas</label>
+            </div>
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-rel">Relacione</span>
+            <p class="pergunta">13. Associe a atividade econômica ao seu resultado:</p>
+            <div class="rel-row">
+                <div class="rel-label">Pecuária</div>
+                <select id="l13_1"><option value="">Escolha...</option><option value="a">Domesticação de animais</option><option value="p">Produção de excedentes agrícolas</option></select>
+                <div class="rel-label">Agricultura</div>
+                <select id="l13_2"><option value="">Escolha...</option><option value="a">Domesticação de animais</option><option value="p">Produção de excedentes agrícolas</option></select>
+            </div>
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-comp">Complete</span>
+            <p class="pergunta">14. O material resistente feito de barro cozido para armazenar grãos é a ____________.</p>
+            <input type="text" id="c14">
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-x">Marque X</span>
+            <p class="pergunta">15. A invenção da roda, além do transporte, foi fundamental em qual outra atividade no Neolítico?</p>
+            <div class="opcoes-grid">
+                <label><input type="radio" name="r15" value="a"> Na caça de grandes animais</label>
+                <label><input type="radio" name="r15" value="b"> Na produção de cerâmica (torno)</label>
+                <label><input type="radio" name="r15" value="c"> Na metalurgia do bronze</label>
+                <label><input type="radio" name="r15" value="d"> Na construção de pirâmides</label>
+            </div>
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-comp">Complete</span>
+            <p class="pergunta">16. O Neolítico é conhecido como a Idade da Pedra ____________.</p>
+            <input type="text" id="c16">
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-rel">Relacione</span>
+            <p class="pergunta">17. Associe o centro agrícola ao seu produto nativo:</p>
+            <div class="rel-row">
+                <div class="rel-label">Milho e Feijão</div>
+                <select id="l17_1"><option value="">Escolha...</option><option value="am">América</option><option value="as">Ásia</option><option value="af">África</option></select>
+                <div class="rel-label">Arroz e Lentilha</div>
+                <select id="l17_2"><option value="">Escolha...</option><option value="am">América</option><option value="as">Ásia</option><option value="af">África</option></select>
+            </div>
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-x">Marque X</span>
+            <p class="pergunta">18. Por que a Revolução Neolítica causou um crescimento populacional?</p>
+            <div class="opcoes-grid">
+                <label><input type="radio" name="r18" value="a"> Menos perigos climáticos</label>
+                <label><input type="radio" name="r18" value="b"> Maior oferta e estoque de comida</label>
+                <label><input type="radio" name="r18" value="c"> Fim das migrações marítimas</label>
+                <label><input type="radio" name="r18" value="d"> Surgimento da medicina</label>
+            </div>
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-comp">Complete</span>
+            <p class="pergunta">19. O surgimento de moradias permanentes resultou na criação das primeiras ____________.</p>
+            <input type="text" id="c19">
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-x">Marque X</span>
+            <p class="pergunta">20. A divisão de tarefas no Neolítico (alguns plantam, outros cuidam da defesa) é um sinal de:</p>
+            <div class="opcoes-grid">
+                <label><input type="radio" name="r20" value="a"> Desigualdade social extrema</label>
+                <label><input type="radio" name="r20" value="b"> Organização social complexa</label>
+                <label><input type="radio" name="r20" value="c"> Fim da cultura religiosa</label>
+                <label><input type="radio" name="r20" value="d"> Decadência tecnológica</label>
+            </div>
+        </div>
+
+        <button class="btn-nav" onclick="ir(3)">Fase 3: Evolução e Cultura →</button>
+    </div>
+
+    <!-- FASE 3: EVOLUÇÃO E EXPRESSÃO -->
+    <div id="f3" class="fase">
+        <div class="resumo-card">
+            <h3>🧬 A Jornada da Evolução e Arte</h3>
+            <p>Os seres humanos surgiram na <b>África</b>. A evolução passou por espécies como: <b>Homo habilis</b> (ferramentas), <b>Homo erectus</b> (fogo), <b>Homo neanderthalensis</b> (frio) e o <b>Homo sapiens</b>. A cultura era expressa pelas <b>pinturas rupestres</b> feitas com pigmentos naturais (sangue, carvão) nas cavernas.</p>
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-comp">Complete</span>
+            <p class="pergunta">21. Segundo a ciência, os primeiros hominídeos surgiram no continente ____________.</p>
+            <input type="text" id="c21">
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-x">Marque X</span>
+            <p class="pergunta">22. Qual espécie hominídea é famosa por ter sido a primeira a fabricar ferramentas de pedra lascada?</p>
+            <div class="opcoes-grid">
+                <label><input type="radio" name="r22" value="a"> Homo sapiens</label>
+                <label><input type="radio" name="r22" value="b"> Homo habilis</label>
+                <label><input type="radio" name="r22" value="c"> Homo erectus</label>
+                <label><input type="radio" name="r22" value="d"> Australopithecus</label>
+            </div>
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-rel">Relacione</span>
+            <p class="pergunta">23. Associe a característica à espécie correspondente:</p>
+            <div class="rel-row">
+                <div class="rel-label">Dominou o Fogo</div>
+                <select id="l23_1"><option value="">Escolha...</option><option value="f">Homo erectus</option><option value="e">Australopithecus africanus</option></select>
+                <div class="rel-label">Andar Erguido</div>
+                <select id="l23_2"><option value="">Escolha...</option><option value="f">Homo erectus</option><option value="e">Australopithecus africanus</option></select>
+            </div>
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-comp">Complete</span>
+            <p class="pergunta">24. Os desenhos pré-históricos feitos em rochas e cavernas chamam-se pinturas ____________.</p>
+            <input type="text" id="c24">
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-x">Marque X</span>
+            <p class="pergunta">25. Quais materiais naturais eram usados como pigmentos para as cores preta e vermelha?</p>
+            <div class="opcoes-grid">
+                <label><input type="radio" name="r25" value="a"> Tinta guache e carvão</label>
+                <label><input type="radio" name="r25" value="b"> Carvão e sangue/minerais</label>
+                <label><input type="radio" name="r25" value="c"> Petróleo e argila</label>
+                <label><input type="radio" name="r25" value="d"> Plantas venenosas e terra</label>
+            </div>
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-comp">Complete</span>
+            <p class="pergunta">26. O nome científico da nossa espécie humana atual é Homo ____________.</p>
+            <input type="text" id="c26">
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-rel">Relacione</span>
+            <p class="pergunta">27. Associe o motivo à migração humana:</p>
+            <div class="rel-row">
+                <div class="rel-label">Fuga do Gelo</div>
+                <select id="l27_1"><option value="">Escolha...</option><option value="c">Mudanças climáticas</option><option value="a">Busca por alimentos</option></select>
+                <div class="rel-label">Seguir Animais</div>
+                <select id="l27_2"><option value="">Escolha...</option><option value="c">Mudanças climáticas</option><option value="a">Busca por alimentos</option></select>
+            </div>
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-x">Marque X</span>
+            <p class="pergunta">28. O Homo neanderthalensis viveu principalmente na Europa e era adaptado a qual condição?</p>
+            <div class="opcoes-grid">
+                <label><input type="radio" name="r28" value="a"> Altas temperaturas</label>
+                <label><input type="radio" name="r28" value="b"> Climas de frio extremo</label>
+                <label><input type="radio" name="r28" value="c"> Vida em oceanos</label>
+                <label><input type="radio" name="r28" value="d"> Planícies desérticas</label>
+            </div>
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-comp">Complete</span>
+            <p class="pergunta">29. As pinturas rupestres eram fundamentais para a transmissão de ____________ entre gerações.</p>
+            <input type="text" id="c29">
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-x">Marque X</span>
+            <p class="pergunta">30. Além de caçadas, o que as pinturas rupestres podiam representar segundo historiadores?</p>
+            <div class="opcoes-grid">
+                <label><input type="radio" name="r30" value="a"> Mapas do tesouro</label>
+                <label><input type="radio" name="r30" value="b"> Rituais e cotidiano espiritual</label>
+                <label><input type="radio" name="r30" value="c"> Listas de compras</label>
+                <label><input type="radio" name="r30" value="d"> Alfabetos complexos</label>
+            </div>
+        </div>
+
+        <button class="btn-nav" onclick="ir(4)">Fase 4: Brasil e Ocupação →</button>
+    </div>
+
+    <!-- FASE 4: BRASIL E OCUPAÇÃO -->
+    <div id="f4" class="fase">
+        <div class="resumo-card">
+            <h3>🇧🇷 O Solo Brasileiro e a Chegada à América</h3>
+            <p>No Brasil, convivemos com a <b>megafauna</b> (animais gigantes). O achado mais importante é o crânio de <b>Luzia</b> (11 mil anos). No litoral, existem os <b>sambaquis</b> (montes de conchas). A ocupação pode ter sido pelo <b>Estreito de Bering</b> ou por mar.</p>
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-comp">Complete</span>
+            <p class="pergunta">31. O grupo de animais de grande porte (como mamutes) é chamado de ____________.</p>
+            <input type="text" id="c31">
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-x">Marque X</span>
+            <p class="pergunta">32. Além de Luzia, qual outro registro indica a presença humana antiga no Brasil?</p>
+            <div class="opcoes-grid">
+                <label><input type="radio" name="r32" value="a"> Pirâmides astecas</label>
+                <label><input type="radio" name="r32" value="b"> Pinturas da Serra da Capivara</label>
+                <label><input type="radio" name="r32" value="c"> Templos de metal</label>
+                <label><input type="radio" name="r32" value="d"> Manuscritos de argila</label>
+            </div>
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-rel">Relacione</span>
+            <p class="pergunta">33. Associe o achado à sua descrição:</p>
+            <div class="rel-row">
+                <div class="rel-label">Sambaquis</div>
+                <select id="l33_1"><option value="">Escolha...</option><option value="m">Montes de conchas e restos orgânicos</option><option value="g">Fóssil humano mais antigo</option></select>
+                <div class="rel-label">Luzia</div>
+                <select id="l33_2"><option value="">Escolha...</option><option value="m">Montes de conchas e restos orgânicos</option><option value="g">Fóssil humano mais antigo</option></select>
+            </div>
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-comp">Complete</span>
+            <p class="pergunta">34. O crânio de Luzia foi descoberto em Lagoa Santa, no estado de ____________.</p>
+            <input type="text" id="c34">
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-x">Marque X</span>
+            <p class="pergunta">35. Qual é a principal hipótese para a chegada humana na América atravessando pelo oceano?</p>
+            <div class="opcoes-grid">
+                <label><input type="radio" name="r35" value="a"> Navegação em grandes caravelas</label>
+                <label><input type="radio" name="r35" value="b"> Uso de pequenas embarcações</label>
+                <label><input type="radio" name="r35" value="c"> Travessia a nado</label>
+                <label><input type="radio" name="r35" value="d"> Caminhada sobre icebergs</label>
+            </div>
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-comp">Complete</span>
+            <p class="pergunta">36. A passagem terrestre que ligava a Ásia à América chama-se Estreito de ____________.</p>
+            <input type="text" id="c36">
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-rel">Relacione</span>
+            <p class="pergunta">37. Associe a rota à sua localização geográfica:</p>
+            <div class="rel-row">
+                <div class="rel-label">Pelo Norte</div>
+                <select id="l37_1"><option value="">Escolha...</option><option value="b">Estreito de Bering</option><option value="o">Oceano Pacífico</option></select>
+                <div class="rel-label">Pelo Sul</div>
+                <select id="l37_2"><option value="">Escolha...</option><option value="b">Estreito de Bering</option><option value="o">Oceano Pacífico</option></select>
+            </div>
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-x">Marque X</span>
+            <p class="pergunta">38. Os povos dos Sambaquis são caracterizados por um estilo de vida baseado na:</p>
+            <div class="opcoes-grid">
+                <label><input type="radio" name="r38" value="a"> Agricultura de soja</label>
+                <label><input type="radio" name="r38" value="b"> Pesca e coleta litorânea</label>
+                <label><input type="radio" name="r38" value="c"> Metalurgia do ferro</label>
+                <label><input type="radio" name="r38" value="d"> Caça exclusiva de aves</label>
+            </div>
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-comp">Complete</span>
+            <p class="pergunta">39. O fóssil de Luzia possui aproximadamente ____________ mil anos.</p>
+            <input type="text" id="c39">
+        </div>
+
+        <div class="questao-box">
+            <span class="tag-tipo tag-x">Marque X</span>
+            <p class="pergunta">40. Quais fatores combinados podem ter levado à extinção da megafauna brasileira?</p>
+            <div class="opcoes-grid">
+                <label><input type="radio" name="r40" value="a"> Mudanças climáticas e pressão humana</label>
+                <label><input type="radio" name="r40" value="b"> Queda de um meteoro gigante</label>
+                <label><input type="radio" name="r40" value="c"> Invenção da escrita</label>
+                <label><input type="radio" name="r40" value="d"> Falta de espaço na floresta</label>
+            </div>
+        </div>
+
+        <button class="btn-nav" onclick="finalizar()">Ver Resultado Final 🏁</button>
+    </div>
+
+    <!-- RESULTADO -->
+    <div id="resultado">
+        <h2>📜 Relatório do Investigador Arqueológico</h2>
+        <div class="score-box" id="score">0 / 40</div>
+        <div id="f-list" class="feedback-list"></div>
+        <button class="btn-nav" onclick="location.reload()">Refazer Atividade</button>
+    </div>
+</div>
+
+<script>
+    const norm = (t) => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").trim();
+
+    function ir(n) {
+        document.querySelectorAll('.fase').forEach(f => f.classList.remove('active'));
+        document.getElementById('f' + n).classList.add('active');
+        document.getElementById('p-fill').style.width = ((n-1) * 25) + "%";
+        window.scrollTo(0,0);
+    }
+
+    function finalizar() {
+        let nota = 0;
+        const list = document.getElementById('f-list');
+        list.innerHTML = "";
+
+        const checar = (id, correta, tipo = "texto") => {
+            let user = "";
+            let ok = false;
+            let pBox = document.getElementById(id) || document.querySelector(`input[name="${id}"]`);
+            let pergunta = pBox?.closest('.questao-box')?.querySelector('.pergunta')?.innerText || "Questão";
+
+            if (tipo === "radio") {
+                let r = document.querySelector(`input[name="${id}"]:checked`);
+                user = r ? r.parentElement.innerText.trim() : "Sem resposta";
+                ok = (r?.value === correta);
+            } else if (tipo === "select") {
+                let s = document.getElementById(id);
+                user = s.options[s.selectedIndex].text;
+                ok = (s.value === correta);
+            } else {
+                user = document.getElementById(id).value;
+                ok = correta.some(c => norm(user).includes(norm(c)));
+            }
+
+            if (ok) nota++;
+
+            const item = document.createElement('div');
+            item.className = `feedback-item ${ok ? 'c-correta' : 'c-errada'}`;
+            item.innerHTML = `<b>${pergunta}</b><br>Sua resposta: ${user} | ${ok ? '✅ Acertou!' : '❌ Incorreto.'}`;
+            list.appendChild(item);
+        };
+
+        // GABARITO FASE 1
+        checar("r1", "b", "radio");
+        checar("c2", ["fossil", "fosseis"]);
+        checar("l3_1", "v", "select");
+        checar("l3_2", "f", "select");
+        checar("c4", ["paleolitico"]);
+        checar("r5", "b", "radio");
+        checar("c6", ["nomades"]);
+        checar("r7", "b", "radio");
+        checar("l8_1", "p", "select");
+        checar("l8_2", "a", "select");
+        checar("c9", ["sitio"]);
+        checar("r10", "b", "radio");
+
+        // GABARITO FASE 2
+        checar("c11", ["agricultura"]);
+        checar("r12", "b", "radio");
+        checar("l13_1", "a", "select");
+        checar("l13_2", "p", "select");
+        checar("c14", ["ceramica"]);
+        checar("r15", "b", "radio");
+        checar("c16", ["polida"]);
+        checar("l17_1", "am", "select");
+        checar("l17_2", "as", "select");
+        checar("r18", "b", "radio");
+        checar("c19", ["aldeias", "villas"]);
+        checar("r20", "b", "radio");
+
+        // GABARITO FASE 3
+        checar("c21", ["africa"]);
+        checar("r22", "b", "radio");
+        checar("l23_1", "f", "select");
+        checar("l23_2", "e", "select");
+        checar("c24", ["rupestres", "rupestre"]);
+        checar("r25", "b", "radio");
+        checar("c26", ["sapiens"]);
+        checar("l27_1", "c", "select");
+        checar("l27_2", "a", "select");
+        checar("r28", "b", "radio");
+        checar("c29", ["conhecimento", "conhecimentos", "informacao"]);
+        checar("r30", "b", "radio");
+
+        // GABARITO FASE 4
+        checar("c31", ["megafauna"]);
+        checar("r32", "b", "radio");
+        checar("l33_1", "m", "select");
+        checar("l33_2", "g", "select");
+        checar("c34", ["minas", "mg"]);
+        checar("r35", "b", "radio");
+        checar("c36", ["bering"]);
+        checar("l37_1", "b", "select");
+        checar("l37_2", "o", "select");
+        checar("r38", "b", "radio");
+        checar("c39", ["onze", "11"]);
+        checar("r40", "a", "radio");
+
+        document.querySelectorAll('.fase').forEach(f => f.classList.remove('active'));
+        document.getElementById('resultado').style.display = 'block';
+        document.getElementById('score').innerText = `${nota} / 40 ACERTOS`;
+        document.getElementById('p-fill').style.width = "100%";
+        window.scrollTo(0,0);
+    }
+</script>
+</body>
+</html>
