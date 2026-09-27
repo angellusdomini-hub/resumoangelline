@@ -551,12 +551,10 @@ function completePhase(){
  modal.innerHTML=`<div class="bigstamp">EVIDÊNCIA VALIDADA</div><h2>O caso avança</h2><p>${p.unlock}</p><p>Uma nova área do Jeffersonian foi desbloqueada.</p><button class="primary" onclick="closeOverlay()">Abrir próxima fase</button>`;
  ov.classList.add("show");
 }
-function closeOverlay(){document.getElementById("overlay").classList.remove("show");
- document.getElementById("certificate").style.display="none";
- const tb=document.getElementById("traineeBox"); if(tb)tb.style.display="block";
- const sn=document.getElementById("studentName"); if(sn)sn.value="";
- document.getElementById("gameArea").classList.add("hidden-game");
- render();}
+function closeOverlay(){
+ document.getElementById("overlay").classList.remove("show");
+ render();
+}
 
 function win(){
  renderSidebar();
